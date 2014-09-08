@@ -4,4 +4,7 @@
 NODE_ENV=production \
 forever \
 start \
-app.js
+-al forever.log \
+-ao log/out.log \
+-ae log/err.log \
+~/www/pdfstitcher/app.js
