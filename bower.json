@@ -1,0 +1,25 @@
+{
+  "name": "pdfstitcher",
+  "version": "0.0.0",
+  "authors": [
+    "pthieuklick <pthieu@klick.com>"
+  ],
+  "description": "Take jpg/png and stitch together into a pdf. split large images into user specified max dimensions and it will span multiple pages in the pdf",
+  "main": "index.html",
+  "keywords": [
+    "pdf",
+    "stitcher"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "2.1.0"
+  }
+}

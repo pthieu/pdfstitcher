@@ -1,0 +1,47 @@
+  <h1>Phong's PDF Stitcher</h1>
+  <div class="config_global">
+    <h2>Set your PDF dimensions (inches)</h2>
+    <div class="config_wrap">
+      <label>Width:</label>
+      <input class="pdf_w" value="11"></input>
+    </div>
+    <div class="config_wrap">
+      <label>Height:</label>
+      <input class="pdf_h" value="17"></input>
+    </div>
+    <h2>Set Default Margins (inches)</h2>
+    <div class="config_wrap">
+      <label>Top:</label>
+      <input class="pdf_t" value="0.5"></input>
+    </div>
+    <div class="config_wrap">
+      <label>Bottom:</label>
+      <input class="pdf_b" value="0.5"></input>
+    </div>
+    <div class="config_wrap">
+      <label>Left:</label>
+      <input class="pdf_l" value="1"></input>
+    </div>
+    <div class="config_wrap">
+      <label>Right:</label>
+      <input class="pdf_r" value="1"></input>
+    </div>
+    <h5>All units in inches</h5>
+    <button class="setsize">Commit Sizing</button>
+  </div>
+  <div class="step2">
+    <div class="dropzone hidden">
+      <i class="fa fa-cloud-upload"></i>
+      <input id="files" multiple="true" name="files[]" type="file">Drop files or click here</input>
+    </div>
+    <div class="results_wrap hidden">
+      <h2>Screenshot List:</h2>
+      <button class="makepdf" disabled>Save PDF</button>
+      <output id="list"></output>
+      <button class="makepdf" disabled>Save PDF</button>
+    </div>
+  </div>
+  <!--<script src="js/bower/jquery/dist/jquery.js"></script>
+  <script type="text/javascript" src="node_modules/pdfkit/build/pdfkit.js"></script>
+  <script type="text/javascript" src="js/blob-stream.js"></script>
+  <script src="js/main.js"></script>-->
