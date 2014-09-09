@@ -340,4 +340,7 @@ h5{
 }
 .modal .preview_wrap img{
   max-width: 100%;
+  display:block;
+  margin:auto;
+  margin-bottom:2px;
 }

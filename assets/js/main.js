@@ -384,6 +384,11 @@ function splitCanvas(src, ele, margin) {
 
       tmpCanvas.width = canvas.width;
       tmpCanvas.height = max_h;
+      if(i == crop-1){
+        tmpContext.rect(0,0, canvas.width, max_h);
+        tmpContext.fillStyle = 'white';
+        tmpContext.fill();
+      }
       tmpContext.drawImage(canvas, 0, -max_h * i);
 
       var thumb_wrap = $('[data-timestamp="'+ele+'"]');
