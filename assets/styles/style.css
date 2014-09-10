@@ -20,10 +20,7 @@ input:focus, select:focus, textarea:focus, button:focus {
 h1 {
   display: block;
   margin: auto;
-  margin-bottom:10px;
-  padding-bottom:10px;
   text-align: center;
-  border-bottom: 1px solid #ffffff
 }
 
 h2{
@@ -31,6 +28,12 @@ h2{
 }
 .hidden {
   display: none !important;
+}
+h4{
+  border-bottom: 1px solid #ffffff;
+  margin-top:2px;
+  margin-bottom:10px;
+  padding-bottom:10px;
 }
 
 h5{
