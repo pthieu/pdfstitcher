@@ -237,23 +237,30 @@ function makePDF2() {
 
 //this is testing pdfkit
 function makekit() {
-  var pdf_w = mmToin($('.pdf_w').val(), true) || mmToin(11,true);
-  var pdf_h = mmToin($('.pdf_h').val(), true) || mmToin(17,true);
-  var pdf_t = mmToin($('.pdf_t').val(), true) || 0;
-  var pdf_b = mmToin($('.pdf_b').val(), true) || 0;
-  var pdf_l = mmToin($('.pdf_l').val(), true) || 0;
-  var pdf_r = mmToin($('.pdf_r').val(), true) || 0;
+  // var pdf_w = mmToin($('.pdf_w').val(), true) || mmToin(11,true);
+  // var pdf_h = mmToin($('.pdf_h').val(), true) || mmToin(17,true);
+  // var pdf_t = mmToin($('.pdf_t').val(), true) || 0;
+  // var pdf_b = mmToin($('.pdf_b').val(), true) || 0;
+  // var pdf_l = mmToin($('.pdf_l').val(), true) || 0;
+  // var pdf_r = mmToin($('.pdf_r').val(), true) || 0;
+  var pdf_w = ($('.pdf_w').val() || 11)*72;
+  var pdf_h = ($('.pdf_h').val() || 17)*72;
+  var pdf_t = ($('.pdf_t').val() || 0)*72;
+  var pdf_b = ($('.pdf_b').val() || 0)*72;
+  var pdf_l = ($('.pdf_l').val() || 0)*72;
+  var pdf_r = ($('.pdf_r').val() || 0)*72;
 
   var items = $('.thumb_wrap:not(.notincluded) .thumb_crop:not(.notincluded) .thumb');
 
   if (items.length < 1) {
     //do nothing if no items. probably add a check and alert here
-    console.log('No pages in PDF')
+    console.log('No pages in PDF');
     return;
   }
 
-  console.log('Generating PDF...')
-
+  console.log('Generating PDF...');
+  
+  //1/72 in/dots, multiply by 72 dots to get size in inches
   var kit = new PDFDocument({
     size: [pdf_w, pdf_h]
   });
@@ -263,10 +270,10 @@ function makekit() {
     var parent = $(this).parents('.thumb_wrap');
 
     // check individual margins
-    var top     = (parent.find('.top').val() === "0")?0:mmToin(parent.find('.top').val(), true) || pdf_t;
-    var bottom  = (parent.find('.bottom').val() === "0")?0:mmToin(parent.find('.bottom').val(), true)  || pdf_b;
-    var left    = (parent.find('.left').val() === "0")?0:mmToin(parent.find('.left').val(), true)    || pdf_l;
-    var right   = (parent.find('.right').val() === "0")?0:mmToin(parent.find('.right').val(), true)   || pdf_r;
+    var top     = (parent.find('.top').val() === "0")?0:parent.find('.top').val()*72 || pdf_t;
+    var bottom  = (parent.find('.bottom').val() === "0")?0:parent.find('.bottom').val()*72  || pdf_b;
+    var left    = (parent.find('.left').val() === "0")?0:parent.find('.left').val()*72    || pdf_l;
+    var right   = (parent.find('.right').val() === "0")?0:parent.find('.right').val()*72   || pdf_r;
     // top     = (!!top)     ? mmToin(top, true)     : 12.7;
     // bottom  = (!!bottom)  ? mmToin(bottom, true)  : 12.7;
     // left    = (!!left)    ? mmToin(left, true)    : 25.4;
