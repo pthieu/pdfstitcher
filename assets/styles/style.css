@@ -347,3 +347,13 @@ h5{
   margin:auto;
   margin-bottom:2px;
 }
+.redline{
+  position: absolute;
+  display: block;
+  padding:5px 0 5px 0;
+  width: 100%;
+}
+.redline div{
+  background-color:#ff0000;
+  height:1px;
+}

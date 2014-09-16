@@ -31,6 +31,54 @@ $(document).ready(function() {
   });
 });
 
+//we're going to add a jquery prototype function
+(function($) {
+    $.fn.drags = function(opt) {
+        //jquery options
+        opt = $.extend({handle:"",cursor:"move"}, opt);
+
+        if(opt.handle === "") {
+            var $el = this;
+        } else {
+            var $el = this.find(opt.handle);
+        }
+        //return element after we do stuff with it so we can chain other functions
+        return $el.css('cursor', opt.cursor).on("mousedown", function(e) {
+            if(opt.handle === "") {
+                var $drag = $(this).addClass('draggable');
+            } else {
+                var $drag = $(this).addClass('active-handle').parent().addClass('draggable');
+            }
+            //set up mouse location so it doesn't pop when we drag
+            var z_idx = $drag.css('z-index'),
+                drg_h = $drag.outerHeight(),
+                // drg_w = $drag.outerWidth(),
+                pos_y = $drag.offset().top + drg_h - e.pageY;
+                // pos_x = $drag.offset().left + drg_w - e.pageX;
+            $drag.css('z-index', 1000).parents().on("mousemove", function(e) {
+                $('.draggable').offset({
+                    top:e.pageY + pos_y - drg_h,
+                    // left:e.pageX + pos_x - drg_w
+                }).on("mouseup", function() {
+                    $(this).removeClass('draggable').css('z-index', z_idx);
+                });
+            });
+            e.preventDefault(); // disable selection
+        });
+// .on("mouseup", function() {
+//             if(opt.handle === "") {
+//                 $('.draggable').removeClass('draggable');
+//             } else {
+//                 $('.draggable').removeClass('active-handle').parent().removeClass('draggable');
+//             }
+//         }).on('mouseout', function () {
+//           //if they leave for longer than a 0.5-1s, kill the draggable.
+//            setTimeout(function (e) {
+//            }, 50000);
+        // });
+    }
+//this passes in the jquery object so it can be chainable
+})(jQuery);
 
 //file events
 function handleDragOver(e) {
@@ -384,25 +432,53 @@ function splitCanvas(src, ele, margin) {
     var crop = imgRatio[0];
     var max_h = imgRatio[1];
 
+    //check if attribute has splice locations. if not, set default, otherwise splice at specific locations
+    var splice = $('.'+ele).data('splice');
+    if (!!splice){
+
+    }
+    else{
+      //if no splice, set default
+      splice = [];
+      for (var i = 0; i < crop; i++) {
+        splice.push(max_h*(i+1));
+      }
+      $('.'+ele).data('splice', splice);
+    }
+
+    //push 0 to the front because preview lines start at i=1, but canvas draw starts i=0
+    splice.unshift(0);
+
     //iterate through each piece and take source image and draw onto a temp image
     for (var i = 0; i < crop; i++) {
       var tmpCanvas = document.createElement("canvas");
       var tmpContext = tmpCanvas.getContext('2d');
 
       tmpCanvas.width = canvas.width;
-      tmpCanvas.height = max_h;
+      tmpCanvas.height = splice[i+1]-splice[i];
       if(i == crop-1){
         tmpContext.rect(0,0, canvas.width, max_h);
         tmpContext.fillStyle = 'white';
         tmpContext.fill();
       }
-      tmpContext.drawImage(canvas, 0, -max_h * i);
+      //draw from x=0 from canvas onto tmpcanvas, from some height, and it will draw whole thing
+      //but cut off at max_h for that iteration because we set height to max_h above
+      //note that we use -max_h*i because we are PLACING the image, not DRAWING it
+
+      //use this if we're not using lines (old style)
+      // tmpContext.drawImage(canvas, 0, -max_h * i);
+      //use this if we're trying to drag lines
+      tmpContext.drawImage(canvas, 0, -splice[i]);
 
       var thumb_wrap = $('[data-timestamp="'+ele+'"]');
       //probably instead of appending, find a way to put it beside thing
       thumb_wrap.append("<div class='thumb_crop'><div class='opt_wrap remove'><button title='Remove from PDF'><i class='fa fa-times'></i></button></div><div class='bg_cross'></div><span><img src='" + tmpCanvas.toDataURL('image/jpeg') + "' class='thumb' /></span></div>");
       rebindConfig();
     }
+
+    //jquery holds data by memory so the unshift above will permenantly change the data
+    //we will have to return it to normal
+    splice.shift();
   };
   //you can load img.src with data src or blob
   imageObj.src = src;
@@ -593,15 +669,33 @@ function bindPreviewHandler(){
       $(preview_wrap).addClass('preview_wrap');
       $(modal).append(preview_wrap);
 
-      $(preview_btn).parents('.thumb_wrap').find('img.thumb').each(function () {
-        var img = document.createElement('img');
-        img.src = $(this)[0].src;
+      //use whole image, draw red lines to show breaks
+      // $(preview_btn).parents('.thumb_wrap').find('img.thumb').each(function () {
+      var img = document.createElement('img');
+      img.src = $(preview_btn).parents('.thumb_wrap').data('src');
 
-       $(img).click(function (e) {
-         e.stopPropagation();
-       });
-        $('.preview_wrap').append(img);
+      $(img).click(function (e) {
+        e.stopPropagation();
       });
+      $('.preview_wrap').append(img);
+      // });
+
+      //create red lines and append
+      var splice = $(preview_btn).parents('.thumb_wrap').data('splice');
+      
+      //last screen always short so don't need a line
+      for(var i=0; i<splice.length-1; i++){
+        var redline = 
+          ['<div class="redline" style="top:'+(splice[i]-5)+'px;">',
+            '<div>',
+            '</div>',
+          '</div>'].join('');
+        $('.preview_wrap').append(redline);
+      }
+
+      $('.redline').click(function (e) {
+        e.stopPropagation();
+      }).drags();
     });
   });
 }
