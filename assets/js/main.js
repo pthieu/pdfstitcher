@@ -26,57 +26,77 @@ $(document).ready(function() {
 
   $(document).on('keyup', function (e) {
     if (e.keyCode == 27) {
-      $(this).find('.modal').remove();
+      closeModal();
     }
   });
 });
 
 //we're going to add a jquery prototype function
 (function($) {
-    $.fn.drags = function(opt) {
-        //jquery options
-        opt = $.extend({handle:"",cursor:"move"}, opt);
+  $.fn.drags = function(opt) {
+    //jquery options
+    opt = $.extend({handle:"",cursor:"move"}, opt);
 
-        if(opt.handle === "") {
-            var $el = this;
-        } else {
-            var $el = this.find(opt.handle);
-        }
-        //return element after we do stuff with it so we can chain other functions
-        return $el.css('cursor', opt.cursor).on("mousedown", function(e) {
-            if(opt.handle === "") {
-                var $drag = $(this).addClass('draggable');
-            } else {
-                var $drag = $(this).addClass('active-handle').parent().addClass('draggable');
-            }
-            //set up mouse location so it doesn't pop when we drag
-            var z_idx = $drag.css('z-index'),
-                drg_h = $drag.outerHeight(),
-                // drg_w = $drag.outerWidth(),
-                pos_y = $drag.offset().top + drg_h - e.pageY;
-                // pos_x = $drag.offset().left + drg_w - e.pageX;
-            $drag.css('z-index', 1000).parents().on("mousemove", function(e) {
-                $('.draggable').offset({
-                    top:e.pageY + pos_y - drg_h,
-                    // left:e.pageX + pos_x - drg_w
-                }).on("mouseup", function() {
-                    $(this).removeClass('draggable').css('z-index', z_idx);
-                });
-            });
-            e.preventDefault(); // disable selection
+    if(opt.handle === "") {
+        var el = this;
+    } else {
+        var el = this.find(opt.handle);
+    }
+    //return element after we do stuff with it so we can chain other functions
+    return el.css('cursor', opt.cursor).on("mousedown", function(e) {
+      if(opt.handle === "") {
+          var drag = $(this).addClass('draggable');
+      }
+      else {
+          var drag = $(this).addClass('active-handle').parent().addClass('draggable');
+      }
+      //set up mouse location so it doesn't pop when we drag
+      var z_idx = drag.css('z-index');
+      var drg_h = drag.outerHeight();
+      var pos_y = drag.offset().top + drg_h - e.pageY;
+
+      drag.css('z-index', 1000).parents().on("mousemove", function(e) {
+        e.stopPropagation();
+        //can use .draggable because only one when mousedown
+        $('.draggable').offset({
+            top:e.pageY + pos_y - drg_h,
+        }).on("mouseup", function(e) {
+            e.stopPropagation();
+            $(this).removeClass('draggable').css('z-index', z_idx);
         });
-// .on("mouseup", function() {
-//             if(opt.handle === "") {
-//                 $('.draggable').removeClass('draggable');
-//             } else {
-//                 $('.draggable').removeClass('active-handle').parent().removeClass('draggable');
-//             }
-//         }).on('mouseout', function () {
+      });
+      e.stopPropagation();
+      e.preventDefault(); // disable selection
+    })
+    .on("mouseup", function(e) {
+      //this is the final mouseup
+      e.stopPropagation();
+
+      //set order and thumb wrap vars so we can edit their data
+      var order = $(this).data('order');
+      var thumb_wrap = $('.thumb_wrap.'+$(this).parents('.preview_wrap').attr('data-timestamp'));
+
+      //get splice data
+      var splice = thumb_wrap.data('splice');
+      //replace px because jquery returns #px as string
+      //we need to also add spacing between parent div and red line
+      var top = parseFloat($(this).css('top').replace(/px/i, ''))+$(this).find('div').position().top;
+
+      //this splice will affect memory for thumb wrap
+      splice[order] = top;
+
+      if(opt.handle === "") {
+          $('.draggable').removeClass('draggable');
+      } else {
+          $('.draggable').removeClass('active-handle').parent().removeClass('draggable');
+      }
+    });
+    // .on('mouseout', function () {
 //           //if they leave for longer than a 0.5-1s, kill the draggable.
 //            setTimeout(function (e) {
 //            }, 50000);
         // });
-    }
+  }
 //this passes in the jquery object so it can be chainable
 })(jQuery);
 
@@ -153,8 +173,8 @@ function handleFileDrop(e) {
                 "<span>Margins</span>",
               "</div>",
               "<div class='opt_wrap preview'>",
-                "<button title='Preview page in a larger window'><i class='fa fa-search-plus'></i></button>",
-                "<span>Preview</span>",
+                "<button title='Splice image by dragging red lines'><i class='fa fa-search-plus'></i></button>",
+                "<span>Splicer</span>",
               "</div>",
               "<div class='margins_wrap hidden'>",
                 "<div class='margins'>",
@@ -167,7 +187,7 @@ function handleFileDrop(e) {
                   "<div class='margin'>",
                     "<label>Top:</label><input class='top' />",
                   "</div>",
-                  "<div class='margin'>",
+                  "<div class='margin hidden'>",
                     "<label>Bottom:</label><input class='bottom' />",
                   "</div>",
                   "<div class='margin'>",
@@ -409,7 +429,7 @@ function calcRatio(w, h, ele) {
 
 }
 
-function splitCanvas(src, ele, margin) {
+function splitCanvas(src, ele) {
   if (src.match(/^blob:/)){
     //if it's a blob, means we're re-splicing so remove all the thumb_crops
     $('[data-timestamp="'+ele+'"]').find('.thumb_crop').remove();
@@ -457,7 +477,7 @@ function splitCanvas(src, ele, margin) {
       tmpCanvas.width = canvas.width;
       tmpCanvas.height = splice[i+1]-splice[i];
       if(i == crop-1){
-        tmpContext.rect(0,0, canvas.width, max_h);
+        tmpContext.rect(0,0, canvas.width, tmpCanvas.height);
         tmpContext.fillStyle = 'white';
         tmpContext.fill();
       }
@@ -468,7 +488,7 @@ function splitCanvas(src, ele, margin) {
       //use this if we're not using lines (old style)
       // tmpContext.drawImage(canvas, 0, -max_h * i);
       //use this if we're trying to drag lines
-      tmpContext.drawImage(canvas, 0, -splice[i]);
+      tmpContext.drawImage(canvas,null,null,canvas.width,canvas.height, 0, -splice[i], canvas.width,canvas.height);
 
       var thumb_wrap = $('[data-timestamp="'+ele+'"]');
       //probably instead of appending, find a way to put it beside thing
@@ -645,6 +665,7 @@ function bindMarginHandler() {
     });
 
     margin.on('keyup', function () {
+      $(thumb).data('splice', '')
       resplice($(thumb).data('timestamp'));
     });
   });
@@ -654,6 +675,7 @@ function bindPreviewHandler(){
   var thumb_wrap = document.querySelectorAll('.thumb_wrap');
   $(thumb_wrap).each(function(){
     var preview_btn = $(this).find('.preview button');
+    var timestamp = $(this).attr('data-timestamp');
 
     preview_btn.unbind();
 
@@ -661,12 +683,13 @@ function bindPreviewHandler(){
       var modal = document.createElement('div');
       $(modal).addClass('modal');
       $('body').append(modal);
-      $(modal).click(function () {
-        $('.modal').remove();
-      });
+      $(modal).on('mousedown', closeModal);
+      $(modal).on('mouseup', killDrags);
 
       var preview_wrap = document.createElement('div');
       $(preview_wrap).addClass('preview_wrap');
+      $(preview_wrap).attr('data-timestamp', timestamp);
+      $(preview_wrap).on('mouseup', killDrags);
       $(modal).append(preview_wrap);
 
       //use whole image, draw red lines to show breaks
@@ -674,7 +697,7 @@ function bindPreviewHandler(){
       var img = document.createElement('img');
       img.src = $(preview_btn).parents('.thumb_wrap').data('src');
 
-      $(img).click(function (e) {
+      $(img).on('mousedown click', function (e) {
         e.stopPropagation();
       });
       $('.preview_wrap').append(img);
@@ -686,14 +709,14 @@ function bindPreviewHandler(){
       //last screen always short so don't need a line
       for(var i=0; i<splice.length-1; i++){
         var redline = 
-          ['<div class="redline" style="top:'+(splice[i]-5)+'px;">',
-            '<div>',
+          ['<div class="redline_wrap" style="top:'+(splice[i]-5)+'px;" data-order="'+i+'">',
+            '<div class="redline">',
             '</div>',
           '</div>'].join('');
         $('.preview_wrap').append(redline);
       }
 
-      $('.redline').click(function (e) {
+      $('.redline_wrap').on('click mouseout mouseup',function (e) {
         e.stopPropagation();
       }).drags();
     });
@@ -705,6 +728,19 @@ function resplice(timestamp){
   var blob = thumb_wrap.data('src');
 
   splitCanvas(blob, timestamp);
+}
+
+function closeModal(){
+  //resplice on modal close with new redliens
+  var ts = $('.modal').find('.preview_wrap').attr('data-timestamp');
+  resplice(ts);
+
+  //remove modals when done
+  $('.modal').remove();
+};
+function killDrags(e){
+  e.stopPropagation();
+  $('.draggable').removeClass('draggable')
 }
 
 

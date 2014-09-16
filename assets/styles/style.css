@@ -347,13 +347,31 @@ h5{
   margin:auto;
   margin-bottom:2px;
 }
-.redline{
+.redline_wrap{
   position: absolute;
   display: block;
   padding:5px 0 5px 0;
   width: 100%;
 }
-.redline div{
+.redline{
   background-color:#ff0000;
   height:1px;
+}
+.redline:after {
+  font-family: 'FontAwesome';
+  content: "\f062";
+  color: red; 
+  font-size: 20px;
+  position: absolute;
+  top: -19px;
+  left: 0;
+}
+.redline:before {
+  font-family: 'FontAwesome';
+  content: "\f063";
+  color: red; 
+  font-size: 20px;
+  position: absolute;
+  top: 10px;
+  left: 0;
 }
