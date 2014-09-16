@@ -300,9 +300,11 @@ h5{
 .config_screen .margins .right {
   margin-bottom: 10px;
 }
-.config_screen .margins .regen {
-  margin-top: 10px;
+.config_screen .margins .resplice_btn {
+  margin-left: auto;
+  margin-right: 0;
 }
+
 .config_screen .opt_wrap {
   width: 50px;
   display: inline-block;

@@ -199,6 +199,9 @@ function handleFileDrop(e) {
                   "<div class='margin msg'>",
                     "<span style='font-style:italic'>Input numbers only!</span>",
                   "</div>",
+                  "<div class='margin'>",
+                    "<button class='resplice_btn'>Re-splice</button>",
+                  "</div>",
                 "</div>",
               "</div>",
             "</div>"
@@ -656,17 +659,20 @@ function bindMarginHandler() {
   [].forEach.call(thumb_wrap, function(thumb) {
     var btn = $(thumb).find('.config_screen .margin_btn button');
     var margin = $(thumb).find('.config_screen .margins_wrap input');
+    var resplice_btn = $(thumb).find('.config_screen .margins_wrap .resplice_btn');
     
     btn.unbind();
     margin.unbind();
+    resplice_btn.unbind();
 
     btn.on('click', function() {
       $(thumb).find('.margins_wrap').toggleClass('hidden');
     });
 
-    margin.on('keyup', function () {
+    resplice_btn.on('click', function () {
       $(thumb).data('splice', '')
       resplice($(thumb).data('timestamp'));
+      $(thumb).find('.margins_wrap').toggleClass('hidden');
     });
   });
 }
