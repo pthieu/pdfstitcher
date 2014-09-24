@@ -81,7 +81,12 @@ $(document).ready(function() {
       //replace px because jquery returns #px as string
       //we need to also add spacing between parent div and red line
       var top = parseFloat($(this).css('top').replace(/px/i, ''))+$(this).find('div').position().top;
-
+      
+      //note this top is the top position relative to window height. we will need to convert to full height
+      var current_h = $('.modal').find('img').height();
+      var full_h = thumb_wrap.data('fullsize').h;
+      top = top*(full_h/current_h);
+console.log(top);
       //this splice will affect memory for thumb wrap
       splice[order] = top;
 
@@ -155,6 +160,7 @@ function handleFileDrop(e) {
         f['url'] = e.target.result;
         f['size'] = getImageSize(f.url);
 
+        var fullsize = JSON.stringify({'w':f.size.width, 'h':f.size.height});
         var imgRatio = calcRatio(f.size.width, f.size.height);
         if (!imgRatio) return;
 
@@ -211,7 +217,11 @@ function handleFileDrop(e) {
           //write to canvas and split into however many sections
           splitCanvas(e.target.result, timestamp);
           //splitCanvas has async calls so we have to add a div group skeleton and fill it up later
-          var addIMG = ["<div class='thumb_wrap crop_group ", timestamp, "' data-src='"+f.src+"' data-timestamp='"+timestamp+"'><div draggable='true' class='drag_overlay'></div>", config_screen, "</div>"].join('');
+          var addIMG = ["<div class='thumb_wrap crop_group ", timestamp,
+                          "' data-src='"+f.src
+                          +"' data-fullsize='"+fullsize
+                          +"' data-timestamp='"+timestamp+"'><div draggable='true' class='drag_overlay'></div>",
+                          config_screen, "</div>"].join('');
         // }
         // else {
         //   //append image to div -- single page no crop isn't an async call so just add it
@@ -458,7 +468,7 @@ function splitCanvas(src, ele) {
     //check if attribute has splice locations. if not, set default, otherwise splice at specific locations
     var splice = $('.'+ele).data('splice');
     if (!!splice){
-
+      //do something if tehre is splice information
     }
     else{
       //if no splice, set default
@@ -708,23 +718,31 @@ function bindPreviewHandler(){
       });
       $('.preview_wrap').append(img);
       // });
+      img.onload = function(e) {
+        //e.target = img --> e.target.width is current width relative to window
+        var fullsize = $(thumb_wrap).data('fullsize');
+        var currentsize = {'w':e.target.width,'h':e.target.height};
+        var ratio = currentsize.w/fullsize.w;
 
-      //create red lines and append
-      var splice = $(preview_btn).parents('.thumb_wrap').data('splice');
-      
-      //last screen always short so don't need a line
-      for(var i=0; i<splice.length-1; i++){
-        var redline = 
-          ['<div class="redline_wrap" style="top:'+(splice[i]-5)+'px;" data-order="'+i+'">',
-            '<div class="redline">',
-            '</div>',
-          '</div>'].join('');
-        $('.preview_wrap').append(redline);
+        //create red lines and append
+        var splice = $(preview_btn).parents('.thumb_wrap').data('splice');
+        
+        //last screen always short so don't need a line
+        for(var i=0; i<splice.length-1; i++){
+          var redline_wrap_offset = 5; //it's actually position of wrapper we take, so we have to minus half of its height. currently hardcoded
+          var line_loc = splice[i]-redline_wrap_offset; //pixel height of line we will create
+          var redline = 
+            ['<div class="redline_wrap" style="top:'+(splice[i]/fullsize.h*100-redline_wrap_offset/currentsize.h*100)+'%;" data-order="'+i+'">',
+              '<div class="redline">',
+              '</div>',
+            '</div>'].join('');
+          $('.preview_wrap').append(redline);
+        }
+
+        $('.redline_wrap').on('click mouseout mouseup',function (e) {
+          e.stopPropagation();
+        }).drags();
       }
-
-      $('.redline_wrap').on('click mouseout mouseup',function (e) {
-        e.stopPropagation();
-      }).drags();
     });
   });
 }
